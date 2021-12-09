@@ -6,10 +6,18 @@ Checks if the given URL does not return the 4xx or 5xx status.
 
 Tested on Python 3.9.9.
 
-```bash
-# install requirements
-pip install -r requirements.txt
+Create file `config.ini` with the following content:
+```ini
+[Discord]
+webhook_url="your_discord_webhook_url_here"
+```
 
-# run script
+Install requirements
+```bash
+pip install -r requirements.txt
+```
+
+Run the script
+```bash
 python sitealert.py https://example.com
 ```
