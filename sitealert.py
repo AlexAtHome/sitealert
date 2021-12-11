@@ -4,11 +4,18 @@ from requests.exceptions import HTTPError
 import sys
 from discord_webhook import DiscordWebhook, DiscordEmbed
 import configparser
+from selenium import webdriver
+from time import sleep
 
 config = configparser.ConfigParser()
 config.read("config.ini")
 
+options = webdriver.FirefoxOptions()
+options.headless = True
+driver = webdriver.Firefox(options=options)
+
 def get_http_error_embed(response: Response, error):
+
 	embed = DiscordEmbed(title='HTTP Error occured!', description=f'```{error}```', color='ff0000')
 	embed.add_embed_field(name="Status code", value=f"{response.status_code}", inline=True)
 	embed.add_embed_field(name="Response time", value=f"{response.elapsed}", inline=True)
@@ -22,9 +29,17 @@ def get_exception_embed(error: Exception):
 
 def send_to_discord(embed: DiscordEmbed):
 	webhook = DiscordWebhook(url=config['Discord']['webhook_url'])
-	webhook.add_embed(embed)
-	webhook.execute()
 
+	driver.get(sys.argv[1])
+	sleep(1)
+	driver.get_screenshot_as_file('screenshot.png')
+	with open("screenshot.png", "rb") as f:
+		webhook.add_file(file=f.read(), filename='screenshot.png')
+	embed.set_image(url='attachment://screenshot.png')
+
+	webhook.add_embed(embed)
+	driver.quit()
+	webhook.execute(remove_files=True)
 
 def main():
 	if len(sys.argv) != 2:
