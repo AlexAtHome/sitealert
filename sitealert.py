@@ -1,18 +1,10 @@
 import requests
+import sys
+import configparser
 from requests import Response
 from requests.exceptions import HTTPError
-import sys
 from discord_webhook import DiscordWebhook, DiscordEmbed
-import configparser
 from selenium import webdriver
-
-config = configparser.ConfigParser()
-config.read("config.ini")
-webhook_url = config['Webhook']['url']
-
-options = webdriver.FirefoxOptions()
-options.headless = True
-driver = webdriver.Firefox(options=options)
 
 def main():
 	if len(sys.argv) != 2:
@@ -47,8 +39,19 @@ def get_exception_message_body(error: Exception):
 	embed.set_timestamp()
 	return embed
 
+def get_driver():
+	options = webdriver.FirefoxOptions()
+	options.headless = True
+	return webdriver.Firefox(options=options)
+
+def get_webhook_url():
+	config = configparser.ConfigParser()
+	config.read("config.ini")
+	return config['Webhook']['url']
+
 def send_webhook(url: str, embed: DiscordEmbed):
-	webhook = DiscordWebhook(url=webhook_url)
+	webhook = DiscordWebhook(url=get_webhook_url())
+	driver = get_driver()
 
 	driver.get(url)
 	webhook.add_file(file=driver.get_screenshot_as_png(), filename='screenshot.png')
