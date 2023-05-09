@@ -1,17 +1,14 @@
 import requests
 from requests import Response
 from requests.exceptions import HTTPError
-import sys, os
+import sys
 from discord_webhook import DiscordWebhook, DiscordEmbed
 import configparser
 from selenium import webdriver
-from time import sleep
 
 config = configparser.ConfigParser()
 config.read("config.ini")
 webhook_url = config['Webhook']['url']
-
-screenshotFile = "screenshot.png"
 
 options = webdriver.FirefoxOptions()
 options.headless = True
@@ -50,23 +47,16 @@ def get_exception_message_body(error: Exception):
 	embed.set_timestamp()
 	return embed
 
-def remove_screenshot():
-	os.remove(screenshotFile)
-
 def send_webhook(url: str, embed: DiscordEmbed):
 	webhook = DiscordWebhook(url=webhook_url)
 
 	driver.get(url)
-	driver.get_screenshot_as_file(screenshotFile)
-	with open(screenshotFile, "rb") as f:
-		webhook.add_file(file=f.read(), filename=screenshotFile)
-	embed.set_image(url=f"attachment://{screenshotFile}")
+	webhook.add_file(file=driver.get_screenshot_as_png(), filename='screenshot.png')
+	embed.set_image(url="attachment://screenshot.png")
 
 	# TODO: Send a simple HTTP request with the 'requests' module
 	webhook.add_embed(embed)
 	webhook.execute(remove_files=True)
-
-	remove_screenshot()
 
 	driver.quit()
 
