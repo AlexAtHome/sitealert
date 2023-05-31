@@ -13,7 +13,6 @@ args = parser.parse_args()
 
 def main():
 	print(f"Checking the url {args.url}...")
-
 	response = requests.head(args.url)
 
 	try:
@@ -48,18 +47,19 @@ def get_driver():
 	except Exception as e:
 		raise RuntimeError('Unable to run geckodriver.', e)
 
+def get_screenshot():
+	driver = get_driver()
+	driver.get(args.url)
+	result = driver.get_screenshot_as_png()
+	return result
+
 def send_webhook(embed: DiscordEmbed):
 	webhook = DiscordWebhook(url=args.webhook)
-	driver = get_driver()
-
-	driver.get(args.url)
-	webhook.add_file(file=driver.get_screenshot_as_png(), filename='screenshot.png')
+	webhook.add_file(file=get_screenshot(), filename='screenshot.png')
 	embed.set_image(url="attachment://screenshot.png")
 
 	# TODO: Send a simple HTTP request with the 'requests' module
 	webhook.add_embed(embed)
 	webhook.execute(remove_files=True)
-
-	driver.quit()
 
 main()
